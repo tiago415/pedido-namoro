@@ -1,46 +1,428 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<title>Uma pergunta ❤️</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body {
-    background: linear-gradient(135deg, #ff4e8a, #ffb347);
-    font-family: Arial, sans-serif;
-    text-align: center;
-    color: white;
-    padding: 30px;
-}
-h1 { font-size: 2.2em; }
-p { font-size: 1.2em; }
-button {
-    font-size: 22px;
-    padding: 15px 35px;
-    border: none;
-    border-radius: 12px;
-    margin: 15px;
-}
-.sim { background-color: #2ecc71; }
-.nao { background-color: #e74c3c; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Missão do Coração ❤️</title>
+  <style>
+    :root{
+      --bg1:#ff4e8a;
+      --bg2:#ffb347;
+      --card: rgba(255,255,255,0.18);
+      --border: rgba(255,255,255,0.35);
+      --text: #ffffff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      overflow:hidden;
+    }
+    .wrap{
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 22px;
+      position: relative;
+      z-index: 2;
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .badge{
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-weight:700;
+    }
+    .badge small{font-weight:400; opacity:0.9}
+    .panel{
+      margin-top:18px;
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    h1{
+      margin: 0 0 6px 0;
+      font-size: clamp(24px, 3vw, 34px);
+    }
+    p{margin: 0; opacity:0.95; line-height:1.4}
+    .gameArea{
+      margin-top:14px;
+      height: 55vh;
+      min-height: 360px;
+      border-radius: 18px;
+      border:1px dashed rgba(255,255,255,0.55);
+      position: relative;
+      overflow:hidden;
+      background: rgba(255,255,255,0.08);
+    }
+    .heart{
+      position:absolute;
+      font-size: 34px;
+      cursor:pointer;
+      user-select:none;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,0.2));
+      transition: transform 0.08s ease;
+    }
+    .heart:active{ transform: translate(-50%, -50%) scale(0.92); }
+    .toast{
+      margin-top: 12px;
+      font-weight:700;
+      min-height: 22px;
+    }
+    .controls{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    button{
+      border:none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: var(--shadow);
+    }
+    .btnPrimary{ background: #2ecc71; color:white; }
+    .btnGhost{ background: rgba(255,255,255,0.22); color:white; border:1px solid rgba(255,255,255,0.35); }
+    .hidden{ display:none !important; }
+
+    /* Modal */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 10;
+    }
+    .modal{
+      width: min(650px, 100%);
+      background: rgba(255,255,255,0.16);
+      border:1px solid rgba(255,255,255,0.32);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      backdrop-filter: blur(12px);
+      text-align:center;
+      position:relative;
+    }
+    .modal h2{
+      margin: 4px 0 10px 0;
+      font-size: clamp(22px, 3vw, 30px);
+    }
+    .modal p{
+      margin: 0 0 14px 0;
+      font-size: 16px;
+      opacity:0.95;
+    }
+    .btnRow{
+      display:flex;
+      gap: 12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      position: relative;
+      min-height: 64px;
+    }
+    #btnNo{
+      background:#e74c3c;
+      color:white;
+      position: relative;
+    }
+    #btnYes{
+      background:#2ecc71;
+      color:white;
+    }
+
+    /* Floating hearts after YES */
+    .floatHeart{
+      position:fixed;
+      left:50%;
+      top:50%;
+      font-size: 26px;
+      pointer-events:none;
+      opacity:0.95;
+      transform: translate(-50%, -50%);
+      animation: floatUp 1.8s ease forwards;
+      z-index: 20;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,0.2));
+    }
+    @keyframes floatUp{
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.0; }
+      10%{ opacity: 1; }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% - 220px)) scale(1.3); opacity: 0; }
+    }
+
+    .footerTip{
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="badge">🎯 Missão: apanhar <span id="target">7</span> corações</div>
+      <div class="badge">❤️ Apanhados: <span id="count">0</span> / <span id="target2">7</span></div>
+      <div class="badge"><small>Tempo</small> ⏱️ <span id="time">00:00</span></div>
+    </div>
 
-<h1>💖 Queres namorar comigo? 💖</h1>
-<p>Prometo fazer-te sorrir todos os dias 🥰</p>
+    <div class="panel">
+      <h1>Jogo do Coração</h1>
+      <p>Regra simples: clica nos corações que aparecem. Quando apanhares todos… tenho uma pergunta 😏💘</p>
 
-<button class="sim" onclick="aceito()">SIM ❤️</button>
-<button class="nao" onclick="nao()">NÃO 💔</button>
+      <div class="gameArea" id="gameArea"></div>
+
+      <div class="controls">
+        <div class="toast" id="toast"></div>
+        <div style="display:flex; gap:10px;">
+          <button class="btnGhost" id="resetBtn">Recomeçar</button>
+          <button class="btnPrimary" id="startBtn">Começar</button>
+        </div>
+      </div>
+
+      <div class="footerTip">Dica: se ela tentar dizer “NÃO”, a opção pode… mexer-se 😈</div>
+    </div>
+  </div>
+
+  <!-- Modal final -->
+  <div class="modalBack hidden" id="modalBack">
+    <div class="modal">
+      <h2>Missão concluída ✅</h2>
+      <p>Ok… agora a sério. <b>Queres namorar comigo?</b> 💖</p>
+
+      <div class="btnRow" id="btnRow">
+        <button id="btnYes">SIM ❤️</button>
+        <button id="btnNo">NÃO 💔</button>
+      </div>
+
+      <p class="footerTip" id="finalTip">Prometo tratar-te bem, fazer-te sorrir e ser a tua pessoa. 🥰</p>
+    </div>
+  </div>
 
 <script>
-function aceito() {
-    alert("AAAA 😍❤️ Já ganhei o dia!");
-}
-function nao() {
-    alert("Essa opção não funciona 😏");
-}
-</script>
+  const target = 7;
+  const gameArea = document.getElementById("gameArea");
+  const countEl = document.getElementById("count");
+  const toastEl = document.getElementById("toast");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const modalBack = document.getElementById("modalBack");
+  const btnYes = document.getElementById("btnYes");
+  const btnNo = document.getElementById("btnNo");
+  const timeEl = document.getElementById("time");
+  document.getElementById("target").textContent = target;
+  document.getElementById("target2").textContent = target;
 
+  let running = false;
+  let caught = 0;
+  let spawnTimer = null;
+  let tickTimer = null;
+  let seconds = 0;
+
+  const messages = [
+    "Boa! 😄",
+    "Isso! 🔥",
+    "Mais um! 😏",
+    "Ok… estás a ganhar o meu coração 😳",
+    "Acho que estamos a combinar demasiado bem 👀",
+    "Continua… já falta pouco 💘"
+  ];
+
+  function fmtTime(s){
+    const mm = String(Math.floor(s/60)).padStart(2,"0");
+    const ss = String(s%60).padStart(2,"0");
+    return `${mm}:${ss}`;
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg;
+  }
+
+  function rand(min, max){
+    return Math.random() * (max - min) + min;
+  }
+
+  function clearHearts(){
+    [...gameArea.querySelectorAll(".heart")].forEach(h => h.remove());
+  }
+
+  function spawnHeart(){
+    if(!running) return;
+
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.textContent = "❤️";
+
+    const rect = gameArea.getBoundingClientRect();
+    const padding = 30;
+
+    const x = rand(padding, rect.width - padding);
+    const y = rand(padding, rect.height - padding);
+
+    heart.style.left = x + "px";
+    heart.style.top = y + "px";
+
+    // some hearts move a bit
+    const dx = rand(-70, 70);
+    const dy = rand(-50, 50);
+
+    let t = 0;
+    const move = () => {
+      if(!heart.isConnected) return;
+      t += 0.02;
+      heart.style.left = (x + Math.sin(t*3)*dx) + "px";
+      heart.style.top  = (y + Math.cos(t*2.5)*dy) + "px";
+      requestAnimationFrame(move);
+    };
+    requestAnimationFrame(move);
+
+    heart.addEventListener("click", () => {
+      if(!running) return;
+      heart.remove();
+
+      caught++;
+      countEl.textContent = caught;
+
+      toast(messages[Math.floor(Math.random()*messages.length)]);
+
+      if(caught >= target){
+        endGame();
+      }
+    });
+
+    gameArea.appendChild(heart);
+
+    // auto remove after some time to keep it dynamic
+    setTimeout(() => {
+      if(heart.isConnected) heart.remove();
+    }, 2200);
+  }
+
+  function startGame(){
+    if(running) return;
+    running = true;
+    startBtn.textContent = "A jogar…";
+    toast("Começou! Apanha os corações 😈");
+
+    // timers
+    spawnTimer = setInterval(spawnHeart, 520);
+    tickTimer = setInterval(() => {
+      seconds++;
+      timeEl.textContent = fmtTime(seconds);
+    }, 1000);
+
+    // start with a few hearts
+    for(let i=0;i<3;i++) setTimeout(spawnHeart, i*180);
+  }
+
+  function endGame(){
+    running = false;
+    clearInterval(spawnTimer);
+    clearInterval(tickTimer);
+    spawnTimer = null;
+    tickTimer = null;
+    clearHearts();
+    toast("Missão concluída ✅");
+    setTimeout(() => {
+      modalBack.classList.remove("hidden");
+    }, 350);
+  }
+
+  function resetGame(){
+    running = false;
+    clearInterval(spawnTimer);
+    clearInterval(tickTimer);
+    spawnTimer = null;
+    tickTimer = null;
+    seconds = 0;
+    timeEl.textContent = "00:00";
+    caught = 0;
+    countEl.textContent = "0";
+    toast("");
+    clearHearts();
+    modalBack.classList.add("hidden");
+    startBtn.textContent = "Começar";
+  }
+
+  // NO button runs away 😈
+  const btnRow = document.getElementById("btnRow");
+  btnNo.addEventListener("mouseenter", () => {
+    const rowRect = btnRow.getBoundingClientRect();
+    const maxX = rowRect.width - btnNo.offsetWidth;
+    const maxY = 10; // keep roughly on the row
+
+    const nx = Math.max(0, Math.min(maxX, rand(0, maxX)));
+    const ny = rand(-6, maxY);
+
+    btnNo.style.position = "absolute";
+    btnNo.style.left = nx + "px";
+    btnNo.style.top  = ny + "px";
+  });
+
+  btnNo.addEventListener("click", () => {
+    alert("Essa opção está temporariamente indisponível 😏💘");
+  });
+
+  function burstHearts(){
+    for(let i=0;i<24;i++){
+      const h = document.createElement("div");
+      h.className = "floatHeart";
+      h.textContent = (Math.random() < 0.85) ? "❤️" : "💖";
+      h.style.left = rand(20, 80) + "vw";
+      h.style.top  = rand(55, 85) + "vh";
+      h.style.setProperty("--dx", rand(-120, 120) + "px");
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 1900);
+    }
+  }
+
+  btnYes.addEventListener("click", () => {
+    burstHearts();
+    document.querySelector(".modal h2").textContent = "AAAAA 😍❤️";
+    document.querySelector(".modal p").innerHTML =
+      "Fizeste-me mesmo feliz. <b>Bem-vinda ao nosso 'nós'</b> 🥰";
+    btnRow.classList.add("hidden");
+    document.getElementById("finalTip").textContent =
+      "Agora manda-me uma mensagem a dizer: “aceito ❤️” 😏";
+  });
+
+  startBtn.addEventListener("click", startGame);
+  resetBtn.addEventListener("click", resetGame);
+
+  // allow click on area to spawn extra hearts (fun)
+  gameArea.addEventListener("click", (e) => {
+    if(!running) return;
+    if(e.target.classList.contains("heart")) return;
+    // small chance to reward a bonus heart
+    if(Math.random() < 0.25) spawnHeart();
+  });
+</script>
 </body>
 </html>
